@@ -1,2 +1,10 @@
 
 .DS_Store
+
+zgc/data/
+
+zgc/target/
+
+*.iml
+
+queue/target/

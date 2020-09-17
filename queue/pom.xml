@@ -28,15 +28,20 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>org.minborg.instantspeed.queue.Streams</mainClass>
+                    <!--<mainClass>org.minborg.instantspeed.queue.Streams</mainClass>-->
+                    <mainClass>org.minborg.instantspeed.queue.Benchmark</mainClass>
+
                     <skip>false</skip>
                     <imageName>${project.artifactId}</imageName>
+                    <buildArgs>
+                        --no-fallback --report-unsupported-elements-at-runtime --initialize-at-build-time=net.openhft.chronicle.core.CleaningRandomAccessFile --native-image-info --verbose -H:+ReportExceptionStackTraces
+                    </buildArgs>
 <!--                    <buildArgs>
                         &#45;&#45;no-fallback &#45;&#45;pgo-instrument
                     </buildArgs>-->
-                    <buildArgs>
-                        --no-fallback --pgo=/Users/pemi/git/minborg/instant-speed/queue/default.iprof
-                    </buildArgs>
+<!--                    <buildArgs>
+                        &#45;&#45;no-fallback &#45;&#45;pgo=/Users/pemi/git/minborg/instant-speed/queue/default.iprof
+                    </buildArgs>-->
                 </configuration>
             </plugin>
 
@@ -77,6 +82,19 @@
             <version>${graalvm.version}</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>chronicle-queue</artifactId>
+            <version>5.20.21</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>chronicle-core</artifactId>
+            <version>2.20.26-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 
 </project>
