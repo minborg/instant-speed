@@ -154,7 +154,7 @@ public final class LatencyBenchmark {
 
 
     private enum Phase {
-        WARMUP(TimeUnit.MINUTES.toSeconds(1)),
+        WARMUP(TimeUnit.MINUTES.toSeconds(2)),
         BENCHMARK(TimeUnit.HOURS.toSeconds(1));
 
         final int durationS;

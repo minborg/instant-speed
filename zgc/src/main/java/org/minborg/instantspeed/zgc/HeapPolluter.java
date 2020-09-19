@@ -8,7 +8,8 @@ import java.util.concurrent.TimeUnit;
 
 public class HeapPolluter implements Runnable {
 
-    private static final int MAX_SIZE = 10_000;
+    private static final int MIN_CLEAR_SIZE = 10_000 - 1;
+    private static final int BATCH_SIZE = 2000;
     private static final long GC_INTERVALS_MS = TimeUnit.MINUTES.toMillis(15);
 
     // Deterministic random generator
@@ -23,15 +24,13 @@ public class HeapPolluter implements Runnable {
     public void run() {
         long nextGc = System.currentTimeMillis() + GC_INTERVALS_MS;
         try {
-            int cnt = 0;
             while (!stopped.get()) {
-                for (int i = 0; i < 250; i++) {
+                for (int i = 0; i < BATCH_SIZE; i++) {
                     list.add(random.nextLong());
                 }
                 Thread.sleep(1);
-                if ((++cnt % MAX_SIZE) == 0) {
-                    cnt = 0;
-                    System.out.format("%s releasing %,d Long objects and unused backing arrays%n", HeapPolluter.class.getSimpleName(), list.size());
+                if (list.size() > MIN_CLEAR_SIZE) {
+                    // System.out.format("%s releasing %,d Long objects and unused backing arrays%n", HeapPolluter.class.getSimpleName(), list.size());
                     list.clear();
                 }
                 if (System.currentTimeMillis() > nextGc) {
