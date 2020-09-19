@@ -25,7 +25,7 @@ public class HeapPolluter implements Runnable {
         try {
             int cnt = 0;
             while (!stopped.get()) {
-                for (int i = 0; i < 100; i++) {
+                for (int i = 0; i < 250; i++) {
                     list.add(random.nextLong());
                 }
                 Thread.sleep(1);
