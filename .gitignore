@@ -8,3 +8,7 @@ zgc/target/
 *.iml
 
 queue/target/
+
+.idea/
+
+zgc/dependency-reduced-pom.xml
