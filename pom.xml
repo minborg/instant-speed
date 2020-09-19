@@ -33,6 +33,7 @@
 
     <modules>
         <module>queue</module>
+        <module>zgc</module>
     </modules>
 
 </project>
