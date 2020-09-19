@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 public class HeapPolluter implements Runnable {
 
     private static final int MAX_SIZE = 10_000;
-    private static final long GC_INTERVALS = TimeUnit.MINUTES.toMicros(15);
+    private static final long GC_INTERVALS_MS = TimeUnit.MINUTES.toMillis(15);
 
     // Deterministic random generator
     private final Random random = new Random(42);
@@ -21,7 +21,7 @@ public class HeapPolluter implements Runnable {
 
     @Override
     public void run() {
-        long nextGc = System.currentTimeMillis() + GC_INTERVALS;
+        long nextGc = System.currentTimeMillis() + GC_INTERVALS_MS;
         try {
             int cnt = 0;
             while (!stopped.get()) {
@@ -37,7 +37,7 @@ public class HeapPolluter implements Runnable {
                 if (System.currentTimeMillis() > nextGc) {
                     System.out.println("Suggesting gc");
                     System.gc();
-                    nextGc = System.currentTimeMillis() + GC_INTERVALS;
+                    nextGc = System.currentTimeMillis() + GC_INTERVALS_MS;
                 }
             }
             System.out.println(HeapPolluter.class.getSimpleName() + " stopped");
