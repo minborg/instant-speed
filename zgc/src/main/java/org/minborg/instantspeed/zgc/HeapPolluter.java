@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit;
 public class HeapPolluter implements Runnable {
 
     private static final int MIN_CLEAR_SIZE = 10_000 - 1;
-    private static final int BATCH_SIZE = 2000;
     private static final long GC_INTERVALS_MS = TimeUnit.MINUTES.toMillis(15);
 
     // Deterministic random generator
@@ -19,13 +18,18 @@ public class HeapPolluter implements Runnable {
     private final List<Long> list = new ArrayList<>();
 
     private final AtomicBoolean stopped = new AtomicBoolean();
+    private final int batchSize;
+
+    public HeapPolluter(int batchSize) {
+        this.batchSize = batchSize;
+    }
 
     @Override
     public void run() {
         long nextGc = System.currentTimeMillis() + GC_INTERVALS_MS;
         try {
             while (!stopped.get()) {
-                for (int i = 0; i < BATCH_SIZE; i++) {
+                for (int i = 0; i < batchSize; i++) {
                     list.add(random.nextLong());
                 }
                 Thread.sleep(1);

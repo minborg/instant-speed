@@ -80,13 +80,18 @@ public final class LatencyBenchmark {
 
     public static void main(String[] args) {
 
+        final int garbageBatchSize = (args.length > 0)
+        ? Integer.parseInt(args[0])
+        : 2000;
+
         final File queueFile = new File(QUEUE_PATH);
 
         System.out.format("Total memory usage: %,d MiB%n", Runtime.getRuntime().totalMemory() / (1 << 20));
         System.out.format("Java version: %s %s %s%n", System.getProperty("java.runtime.name"), System.getProperty("java.runtime.version"), System.getProperty("java.vendor"));
         System.out.format("The Chronicle Queue is persisted to %s%n", queueFile.getAbsolutePath());
+        System.out.format("The garbage batch-size is %,d%n", garbageBatchSize);
 
-        final HeapPolluter heapPolluter = new HeapPolluter();
+        final HeapPolluter heapPolluter = new HeapPolluter(garbageBatchSize);
         final Executor executor = Executors.newSingleThreadExecutor();
         executor.execute(heapPolluter);
 
@@ -102,7 +107,7 @@ public final class LatencyBenchmark {
                     int cnt = 0;
                     final long startNs = System.nanoTime();
                     for (int s = 0; s < (MSG_PER_SECOND * phase.durationS()) / MSG_PER_BATCH; s++) {
-                        writeMessageBatch(appender, histogram);
+                        writeMessageBatch(appender, histogram, startNs + cnt * INTER_MSG_PERIOD_NS);
                         cnt += MSG_PER_BATCH;
                     }
                     final long elapsedNs = System.nanoTime() - startNs;
@@ -117,18 +122,19 @@ public final class LatencyBenchmark {
         heapPolluter.stop();
     }
 
-    private static void writeMessageBatch(final ExcerptAppender appender, final Histogram histogram) {
+    private static void writeMessageBatch(final ExcerptAppender appender, final Histogram histogram, final long startBatchNs) {
         try (DocumentContext dc = appender.writingDocument()) {
             final Wire wire = dc.wire();
-            for (Message message : MESSAGE_BATCH) {
-                final long startNs = System.nanoTime();
-                message.apply(wire);
-                final long elapsedNs = System.nanoTime() - startNs;
-                histogram.sampleNanos(elapsedNs);
-                final long nextNs = startNs + INTER_MSG_PERIOD_NS;
+            for (int i = 0; i < MESSAGE_BATCH.length; i++) {
+                final Message message = MESSAGE_BATCH[i];
+                //final long currentNs = startBatchNs + i * INTER_MSG_PERIOD_NS;
                 // Spin wait
+                final long nextNs = startBatchNs + i * INTER_MSG_PERIOD_NS;
                 while (System.nanoTime() < nextNs) {
                 }
+                message.apply(wire);
+                final long elapsedNs = System.nanoTime() - nextNs;
+                histogram.sampleNanos(elapsedNs);
             }
         }
     }
@@ -155,7 +161,7 @@ public final class LatencyBenchmark {
 
     private enum Phase {
         WARMUP(TimeUnit.MINUTES.toSeconds(2)),
-        BENCHMARK(TimeUnit.HOURS.toSeconds(1));
+        BENCHMARK(TimeUnit.MINUTES.toSeconds(5));
 
         final int durationS;
 
